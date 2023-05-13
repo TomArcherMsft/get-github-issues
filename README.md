@@ -2,7 +2,7 @@
 
 Produces a CSV of GitHub Issues
 
-CSV is then opened in Excel where I can group issues by:
+CSV is then opened in Excel where they can be grouped by:
 
 - Article URL
 - Article Focus
