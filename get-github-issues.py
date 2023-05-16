@@ -46,10 +46,10 @@ def build_issue(repo_name, gh_issue):
 	if content_source_match:
 		issue['article_url'] = content_source_match.group(1)
 
-	article_focus_pattern = re.compile(f"{GITHUB_DOMAIN}/{GITHUB_ORG}/{repo_name}/blob/(main|master)/articles/(.*?)/")
-	article_focus_match = article_focus_pattern.search(comments)
-	if article_focus_match:
-		issue['product'] = article_focus_match.group(2)
+	product_pattern = re.compile(f"{GITHUB_DOMAIN}/{GITHUB_ORG}/{repo_name}/blob/(main|master)/articles/(.*?)/")
+	product_match = product_pattern.search(comments)
+	if product_match:
+		issue['product'] = product_match.group(2)
 
 	return issue
 
@@ -62,13 +62,16 @@ def parse_args():
 	return argParser.parse_args()
 
 def save_issues(repo_name, issues):
-	with open(f"{repo_name}.txt", "w") as f:
+	file_name = f"{repo_name}.txt"
+	with open(file_name, "w") as f:
 		columns = 'GitHub Issue/PR Title,GitHub Issue/PR URL,Content Source,Product'
 		f.write(f"{columns}\n")
 
 		for issue in issues:
 			f.write(f"{issue['title']},{issue['url']},{issue['article_url']},{issue['product']}\n")
 
+		print(f"{file_name} successfully generated.")
+	
 def main():
 	print(Fore.GREEN)
 
@@ -84,7 +87,7 @@ def main():
 			issue = build_issue(args.repo, gh_issue)
 			issues.append(issue)
 
-			save_issues(args.repo, issues)
+		save_issues(args.repo, issues)
 	except OSError as error:
 		print_error(error)		
 
