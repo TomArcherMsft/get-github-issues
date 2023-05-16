@@ -1,6 +1,6 @@
 # Produce a CSV of GitHub Issues
 
-CSV can then be opened in Excel where I can group issues by:
+CSV can then be opened in Excel where I can group/filter/sort issues by desired column(s).
 
 ## Usage
 `get-github-issues.py [-h] -r REPO`
