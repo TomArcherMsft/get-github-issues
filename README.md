@@ -3,9 +3,11 @@
 CSV can then be opened in Excel where I can group/filter/sort issues by desired column(s).
 
 ## Syntax
+
 `get-github-issues.py [-h] -r REPO`
 
 ## Example
+
 `python get-github-issues -r azure-dev-docs`
 
 ## Configuration
