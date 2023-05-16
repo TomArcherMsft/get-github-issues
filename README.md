@@ -12,10 +12,11 @@ CSV can then be opened in Excel where I can group/filter/sort issues by desired 
 
 Create the following environment variables:
 
-| Name | Value |
+| Name         | Description                   |
+|--------------|-------------------------------|
 | GITHUB_TOKEN | Your GitHub Application token |
-| GIT_LOGIN | Your Git ID |
-| GITHUB_ORG | The org of your repo |
+| GIT_LOGIN    | Your Git ID                   |
+| GITHUB_ORG   | The org of your repo          |
 
 ## Additional info
 
