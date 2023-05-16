@@ -1,6 +1,6 @@
-# Produce a CSV of GitHub Issues
+# Get GitHub Issues and save in Excel file
 
-CSV can then be opened in Excel where I can group/filter/sort issues by desired column(s).
+File can then be opened in Excel where you can group/filter/sort issues by desired column(s).
 
 ## Syntax
 
