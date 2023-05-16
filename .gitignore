@@ -1,5 +1,5 @@
 # Local files
-test.txt
+*.txt
 test.xlsx
 
 # Byte-compiled / optimized / DLL files

@@ -2,38 +2,92 @@ from github import Github
 import os
 import urllib.request
 import re
+import argparse
+from colorama import Fore, Back, Style
 
-token = os.getenv('GITHUB_TOKEN')
-gh = Github(token)
+# Load GitHub application token from environment variable.
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
-github_domain = 'https://github.com'
-repo_name = 'MicrosoftDocs/azure-dev-docs'
-repo = gh.get_repo(repo_name)
+# Load Git login ID from environment variable.
+GIT_LOGIN = os.environ.get("GIT_LOGIN")
 
-issues = repo.get_issues(state='open', assignee='TomArcherMsft')
-with open("test.txt", "w") as f:
-	columns = 'GitHub Issue/PR URL,Content Source,Article Focus'
-	f.write(f"{columns}\n")
+# Load GitHub org name.
+GITHUB_ORG = os.getenv('GITHUB_ORG')
 
-	for issue in issues:
-		url = issue.html_url
-		response = urllib.request.urlopen(url)
-		data = response.read()      # a `bytes` object as data is binary
+# Constants
+GITHUB_DOMAIN = 'https://github.com'
 
-		content_source_pattern = '<li>Content Source: <a href="(.*?)"'
-		matches = re.findall(content_source_pattern, data.decode('utf-8'))
-		found_matches = False
+def print_error(msg):
+  print(Fore.RED)
+  print(msg)
 
-		for match in matches:
-			found_matches = True
+def get_issues(repo_name):
+	gh = Github(GITHUB_TOKEN)
+	q_repo_name = f"{GITHUB_ORG}/{repo_name}"
+	repo = gh.get_repo(q_repo_name)
 
-			article_focus = ''
-			article_focus_pattern = re.compile(f"{github_domain}/{repo_name}/blob/(main|master)/articles/(.*?)/")
-			article_focus_match = article_focus_pattern.search(match)
-			if article_focus_match:
-				article_focus = article_focus_match.group(2)
+	issues = repo.get_issues(state='open', assignee=GIT_LOGIN)
+	return issues
 
-			f.write(f"{url},{match},{article_focus}\n")
+def build_issue(repo_name, gh_issue):
+	issue = {}
+	issue['title'] = gh_issue.title
+	issue['url'] = gh_issue.html_url
+	issue['article_url'] = ""
+	issue['product'] = ""
 
-		if found_matches != True:
-			f.write(f"{url},NO MATCHES FOR: {content_source_pattern},UNKNOWN\n")
+	response = urllib.request.urlopen(gh_issue.html_url)
+	data = response.read()      # a `bytes` object as data is binary
+
+	comments = data.decode('utf-8')
+
+	content_source_pattern = re.compile('<li>Content Source: <a href="(.*?)"')
+	content_source_match = content_source_pattern.search(comments)
+	if content_source_match:
+		issue['article_url'] = content_source_match.group(1)
+
+	article_focus_pattern = re.compile(f"{GITHUB_DOMAIN}/{GITHUB_ORG}/{repo_name}/blob/(main|master)/articles/(.*?)/")
+	article_focus_match = article_focus_pattern.search(comments)
+	if article_focus_match:
+		issue['product'] = article_focus_match.group(2)
+
+	return issue
+
+def clean_up():
+	print(Style.RESET_ALL)
+
+def parse_args():
+	argParser = argparse.ArgumentParser()
+	argParser.add_argument("-r", "--repo", help="GitHub repository name.", required=True)
+	return argParser.parse_args()
+
+def save_issues(repo_name, issues):
+	with open(f"{repo_name}.txt", "w") as f:
+		columns = 'GitHub Issue/PR Title,GitHub Issue/PR URL,Content Source,Product'
+		f.write(f"{columns}\n")
+
+		for issue in issues:
+			f.write(f"{issue['title']},{issue['url']},{issue['article_url']},{issue['product']}\n")
+
+def main():
+	print(Fore.GREEN)
+
+	try:
+		# Get the command-line args (parameters).
+		args = parse_args()
+
+		# Get issues for specified repo.
+		gh_issues = get_issues(args.repo)
+
+		issues = []
+		for gh_issue in gh_issues:
+			issue = build_issue(args.repo, gh_issue)
+			issues.append(issue)
+
+			save_issues(args.repo, issues)
+	except OSError as error:
+		print_error(error)		
+
+	clean_up()
+                        
+main()
