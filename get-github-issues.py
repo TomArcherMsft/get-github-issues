@@ -4,6 +4,8 @@ import urllib.request
 import re
 import argparse
 from colorama import Fore, Back, Style
+import pandas as pd
+import openpyxl
 
 # Load GitHub application token from environment variable.
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
@@ -61,7 +63,20 @@ def parse_args():
 	argParser.add_argument("-r", "--repo", help="GitHub repository name.", required=True)
 	return argParser.parse_args()
 
-def save_issues(repo_name, issues):
+def save_issues_to_excel(repo_name, issues):
+	rows = []
+	for issue in issues:
+		row = [issue['title'], issue['url'], issue['article_url'], issue['product']]
+		rows.append(row)
+
+	df = pd.DataFrame(rows,
+										index=None,
+										columns=['GitHub Issue/PR Title', 'GitHub Issue/PR URL', 'Content Source', 'Product'])
+	file_name = f"{repo_name}.xlsx"
+	df.to_excel(file_name, sheet_name='GitHub Issues')
+	print(f"{file_name} successfully generated.")
+
+def save_issues_to_text(repo_name, issues):
 	file_name = f"{repo_name}.txt"
 	with open(file_name, "w") as f:
 		columns = 'GitHub Issue/PR Title,GitHub Issue/PR URL,Content Source,Product'
@@ -87,7 +102,8 @@ def main():
 			issue = build_issue(args.repo, gh_issue)
 			issues.append(issue)
 
-		save_issues(args.repo, issues)
+		#save_issues_to_text(args.repo, issues)
+		save_issues_to_excel(args.repo, issues)
 	except OSError as error:
 		print_error(error)		
 
