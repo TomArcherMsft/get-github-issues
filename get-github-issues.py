@@ -19,9 +19,9 @@ GITHUB_ORG = os.getenv('GITHUB_ORG')
 # Constants
 GITHUB_DOMAIN = 'https://github.com'
 
-def print_error(context, error_text):
+def print_error(error_text):
   print(Fore.RED)
-  print(f"ERROR:\nContext: {context}\nDetails: {error_text}\n")
+  print(f"ERROR:\n{error_text}\n")
 
 def get_issues(org_name, repo_name):
 	issues = []
@@ -31,9 +31,9 @@ def get_issues(org_name, repo_name):
 		q_repo_name = f"{org_name}/{repo_name}"
 
 		repo = gh.get_repo(q_repo_name)
-
-		issues = repo.get_issues(state='open', assignee=GIT_LOGIN)
-
+		if repo:
+			issues = repo.get_issues(state='open', assignee=GIT_LOGIN)
+	
 	return issues
 
 def build_issue(repo_name, gh_issue):
@@ -110,10 +110,13 @@ def main():
 			issue = build_issue(args.repo, gh_issue)
 			issues.append(issue)
 
-		#save_issues_to_text(args.repo, issues)
-		save_issues_to_excel(args.repo, issues)
-	except OSError as error:
-		print_error('main', error)
+		if gh_issues:
+			#save_issues_to_text(args.repo, issues)
+			save_issues_to_excel(args.repo, issues)
+		else:
+			print(f"No issues found for {org_name}/{args.repo}")
+	except Exception as e:
+		print_error(str(e))
 
 	clean_up()
                         
