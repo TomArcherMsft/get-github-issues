@@ -1,4 +1,4 @@
-# Get GitHub Issues and save in Excel file
+# Get GitHub Issues and save to Excel file
 
 File can then be opened in Excel where you can group/filter/sort issues by desired column(s).
 
