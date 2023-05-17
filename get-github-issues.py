@@ -19,16 +19,21 @@ GITHUB_ORG = os.getenv('GITHUB_ORG')
 # Constants
 GITHUB_DOMAIN = 'https://github.com'
 
-def print_error(msg):
+def print_error(context, error_text):
   print(Fore.RED)
-  print(msg)
+  print(f"ERROR:\nContext: {context}\nDetails: {error_text}\n")
 
-def get_issues(repo_name):
+def get_issues(org_name, repo_name):
+	issues = []
+
 	gh = Github(GITHUB_TOKEN)
-	q_repo_name = f"{GITHUB_ORG}/{repo_name}"
-	repo = gh.get_repo(q_repo_name)
+	if gh:
+		q_repo_name = f"{org_name}/{repo_name}"
 
-	issues = repo.get_issues(state='open', assignee=GIT_LOGIN)
+		repo = gh.get_repo(q_repo_name)
+
+		issues = repo.get_issues(state='open', assignee=GIT_LOGIN)
+
 	return issues
 
 def build_issue(repo_name, gh_issue):
@@ -38,6 +43,7 @@ def build_issue(repo_name, gh_issue):
 	issue['article_url'] = ""
 	issue['product'] = ""
 
+	print(f"Reading {gh_issue.html_url}")
 	response = urllib.request.urlopen(gh_issue.html_url)
 	data = response.read()      # a `bytes` object as data is binary
 
@@ -61,6 +67,7 @@ def clean_up():
 def parse_args():
 	argParser = argparse.ArgumentParser()
 	argParser.add_argument("-r", "--repo", help="GitHub repository name.", required=True)
+	argParser.add_argument("-o", "--org", help="GitHub org name.", required=False)
 	return argParser.parse_args()
 
 def save_issues_to_excel(repo_name, issues):
@@ -95,7 +102,8 @@ def main():
 		args = parse_args()
 
 		# Get issues for specified repo.
-		gh_issues = get_issues(args.repo)
+		org_name = args.org or GITHUB_ORG
+		gh_issues = get_issues(org_name, args.repo)
 
 		issues = []
 		for gh_issue in gh_issues:
@@ -105,7 +113,7 @@ def main():
 		#save_issues_to_text(args.repo, issues)
 		save_issues_to_excel(args.repo, issues)
 	except OSError as error:
-		print_error(error)		
+		print_error('main', error)
 
 	clean_up()
                         
